@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Noir</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div id="loading-overlay" class="loading-overlay" style="display:none;">
+    <div class="loading-box">
+        <div class="spinner"></div>
+        <p id="loading-msg" class="loading-msg">Extracting repository…</p>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="cn-modal" class="modal-backdrop" aria-modal="true" role="dialog">
+    <div class="modal-box">
+        <button class="modal-close" id="modal-close-btn" aria-label="Close">&#10005;</button>
+        <div id="modal-body"></div>
+    </div>
+</div>
+
+<main>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-left">
+            <h1>Code Noir</h1>
+            <p class="subtitle">Developer onboarding assistant for unfamiliar codebases.</p>
+        </div>
+        <span class="bob-badge">Powered by IBM Bob</span>
+    </header>
+
+    <!-- Error -->
+    <div th:if="${error}" class="banner banner-error">
+        <span class="banner-icon">✕</span>
+        <span th:text="${error}"></span>
+    </div>
+
+    <!-- Upload confirmation -->
+    <div th:if="${fileCount != null and report == null}" class="banner banner-ok">
+        <span class="banner-icon">✓</span>
+        <span>Received <strong th:text="${filename}"></strong> — <span th:text="${fileCount}"></span> files extracted</span>
+    </div>
+
+    <!-- Upload form -->
+    <section class="card upload-card">
+        <h3 class="section-title" th:text="${report != null ? 'Analyse Another Project' : 'Get Started'}"></h3>
+        <form id="upload-form" method="post" action="/analyze" enctype="multipart/form-data">
+            <label for="file">Upload a <code>.zip</code> of your project</label>
+            <div class="file-row-ui">
+                <input type="file" id="file" name="file" accept=".zip" required>
+                <button type="submit" id="analyse-btn">Analyse</button>
+            </div>
+        </form>
+    </section>
+
+    <!-- ═══════════════════ REPORT ═══════════════════ -->
+    <div th:if="${report}" class="report">
+
+        <!-- Overview -->
+        <section class="card overview-card">
+            <div class="card-header">
+                <h2 class="project-name" th:text="${report.project?.name ?: 'Project'}"></h2>
+                <div class="tag-row" th:if="${report.project?.frameworks}">
+                    <span class="tag" th:each="f : ${report.project.frameworks}" th:text="${f}"></span>
+                </div>
+            </div>
+            <p class="summary-text clamp-2" th:if="${report.project?.summary}" th:text="${report.project.summary}"></p>
+            <div class="meta-grid">
+                <div class="meta-item" th:if="${report.project?.primaryLanguage}">
+                    <span class="meta-label">Language</span>
+                    <span class="meta-value" th:text="${report.project.primaryLanguage}"></span>
+                </div>
+                <div class="meta-item" th:if="${report.project?.buildTool}">
+                    <span class="meta-label">Build</span>
+                    <span class="meta-value" th:text="${report.project.buildTool}"></span>
+                </div>
+                <div class="meta-item clamp-meta" th:if="${report.project?.architecture}">
+                    <span class="meta-label">Architecture</span>
+                    <span class="meta-value clamp-3" th:text="${report.project.architecture}"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Important Folders -->
+        <section th:if="${report.importantFolders}">
+            <h3 class="grid-section-title">Important Folders</h3>
+            <div class="card-grid">
+                <div class="grid-card folder-gcard clickable-card"
+                     th:each="f : ${report.importantFolders}"
+                     th:attr="data-kind='folder',
+                              data-path=${f.path},
+                              data-body=${f.purpose}">
+                    <div class="gcard-accent"></div>
+                    <code class="gcard-path" th:text="${f.path}"></code>
+                    <p class="gcard-desc clamp-1" th:text="${f.purpose}"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Files — clickable cards open modal -->
+        <section th:if="${report.importantFiles}">
+            <h3 class="grid-section-title">Key Files</h3>
+            <div class="card-grid">
+                <div class="grid-card file-gcard clickable-card"
+                     th:each="f : ${report.importantFiles}"
+                     th:attr="data-kind='file',
+                              data-path=${f.path},
+                              data-role=${f.role},
+                              data-body=${f.purpose}">
+                    <div class="gcard-accent"></div>
+                    <div class="gcard-top">
+                        <code class="gcard-path" th:text="${f.path}"></code>
+                        <span class="role-badge" th:if="${f.role}" th:text="${f.role}"></span>
+                    </div>
+                    <span class="card-hint">click for details</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Observations — clickable cards open modal -->
+        <section th:if="${report.observations}">
+            <h3 class="grid-section-title">Observations</h3>
+            <div class="card-grid">
+                <div class="grid-card obs-gcard clickable-card"
+                     th:each="o : ${report.observations}"
+                     th:classappend="${'obs-sev-' + (o.severity ?: 'info')}"
+                     th:attr="data-kind='obs',
+                              data-severity=${o.severity},
+                              data-title=${o.title},
+                              data-file=${o.file},
+                              data-body=${o.message}">
+                    <div class="gcard-accent" th:classappend="${'accent-' + (o.severity ?: 'info')}"></div>
+                    <div class="gcard-top">
+                        <span class="sev-badge" th:classappend="${'sev-' + (o.severity ?: 'info')}"
+                              th:text="${o.severity ?: 'info'}"></span>
+                    </div>
+                    <p class="gcard-title" th:text="${o.title ?: '—'}"></p>
+                    <code class="gcard-file" th:if="${o.file}" th:text="${o.file}"></code>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reading Order -->
+        <section th:if="${report.readingOrder}">
+            <h3 class="grid-section-title">Recommended Reading Order</h3>
+            <div class="card-grid">
+                <div class="grid-card reading-gcard" th:each="item,stat : ${report.readingOrder}">
+                    <div class="gcard-accent"></div>
+                    <span class="reading-num" th:text="${stat.count}"></span>
+                    <code class="gcard-path" th:text="${item}"></code>
+                </div>
+            </div>
+        </section>
+
+        <!-- Starter Task (full-width) -->
+        <section th:if="${report.starterTask}">
+            <div class="starter-card">
+                <div class="gcard-accent accent-starter"></div>
+                <div class="starter-header">
+                    <span class="starter-badge">Start Here</span>
+                    <span class="starter-label">Suggested Starter Task</span>
+                </div>
+                <p class="starter-text" th:text="${report.starterTask}"></p>
+            </div>
+        </section>
+
+        <!-- Technical Details (collapsed) -->
+        <section class="card" th:if="${report.details}">
+            <details class="tech-details">
+                <summary class="section-title">Technical Details</summary>
+                <pre class="details-pre" th:text="${report.details}"></pre>
+            </details>
+        </section>
+
+    </div>
+    <!-- /report -->
+
+</main>
+
+<script>
+(function () {
+    /* ── Loading overlay ── */
+    var form    = document.getElementById('upload-form');
+    var overlay = document.getElementById('loading-overlay');
+    var msgEl   = document.getElementById('loading-msg');
+    var btn     = document.getElementById('analyse-btn');
+
+    var stages = [
+        'Extracting repository\u2026',
+        'Understanding project structure\u2026',
+        'Identifying important files\u2026',
+        'Mapping architecture\u2026',
+        'Preparing onboarding report\u2026'
+    ];
+
+    form.addEventListener('submit', function () {
+        var fileInput = document.getElementById('file');
+        if (!fileInput.value) return;
+        btn.disabled = true;
+        btn.textContent = 'Analysing\u2026';
+        overlay.style.display = 'flex';
+        msgEl.textContent = stages[0];
+        var i = 1;
+        var iv = setInterval(function () {
+            if (i < stages.length) { msgEl.textContent = stages[i++]; }
+            else { clearInterval(iv); }
+        }, 18000);
+    });
+
+    /* ── Modal ── */
+    var modal     = document.getElementById('cn-modal');
+    var modalBody = document.getElementById('modal-body');
+    var closeBtn  = document.getElementById('modal-close-btn');
+
+    function esc(str) {
+        if (!str) return '';
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function openModal(html) {
+        modalBody.innerHTML = html;
+        modal.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        closeBtn.focus();
+    }
+
+    function closeModal() {
+        modal.classList.remove('modal-open');
+        document.body.style.overflow = '';
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeModal();
+    });
+
+    document.querySelectorAll('.clickable-card').forEach(function (card) {
+        card.addEventListener('click', function () {
+            var kind = card.dataset.kind;
+            var html = '';
+
+            if (kind === 'folder') {
+                var path = card.dataset.path || '';
+                var body = card.dataset.body || '';
+                html  = '<div class="modal-kind-label">Important Folder</div>';
+                html += '<code class="modal-path">' + esc(path) + '</code>';
+                if (body) html += '<p class="modal-desc">' + esc(body) + '</p>';
+            } else if (kind === 'file') {
+                var path = card.dataset.path || '';
+                var role = card.dataset.role || '';
+                var body = card.dataset.body || '';
+                html  = '<div class="modal-kind-label">Key File</div>';
+                html += '<code class="modal-path">' + esc(path) + '</code>';
+                if (role) html += '<span class="modal-role role-badge">' + esc(role) + '</span>';
+                if (body) html += '<p class="modal-desc">' + esc(body) + '</p>';
+            } else if (kind === 'obs') {
+                var sev   = card.dataset.severity || 'info';
+                var title = card.dataset.title    || '';
+                var file  = card.dataset.file     || '';
+                var body  = card.dataset.body     || '';
+                html  = '<div class="modal-kind-label">Observation</div>';
+                html += '<span class="sev-badge sev-' + esc(sev) + ' modal-sev">' + esc(sev) + '</span>';
+                if (title) html += '<p class="modal-title">' + esc(title) + '</p>';
+                if (file)  html += '<code class="modal-file gcard-file">' + esc(file) + '</code>';
+                if (body)  html += '<p class="modal-desc">' + esc(body) + '</p>';
+            }
+
+            openModal(html);
+        });
+    });
+}());
+</script>
+</body>
+</html>

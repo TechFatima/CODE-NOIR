@@ -1,0 +1,700 @@
+/* ── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Design Tokens ──────────────────────────────────────────── */
+:root {
+    --bg:           #0d0c0b;
+    --bg-card:      #161411;
+    --bg-card-hover:#1c1916;
+    --border:       #2a2620;
+    --border-gold:  #3d3520;
+    --text:         #ede8de;          /* brighter cream for body readability */
+    --text-muted:   #9a9080;          /* raised from #7a7060 for contrast */
+    --text-dim:     #5a5448;          /* raised from #443f38 — still subdued */
+    --gold:         #c9a84c;
+    --gold-dim:     #7a6228;
+    --gold-pale:    rgba(201,168,76,.10);
+    --green:        #4e9468;
+    --green-bg:     rgba(78,148,104,.12);
+    --amber:        #c4923a;
+    --amber-bg:     rgba(196,146,58,.12);
+    --red:          #b05050;
+    --red-bg:       rgba(176,80,80,.12);
+    --blue:         #5080a8;
+    --radius:       10px;
+    --shadow:       0 4px 20px rgba(0,0,0,.45);
+    --shadow-hover: 0 8px 28px rgba(0,0,0,.6);
+    --font:         "Playfair Display", Georgia, "Times New Roman", serif;
+    --font-ui:      -apple-system, "Segoe UI", system-ui, sans-serif;
+    --font-mono:    "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+/* ── Base ───────────────────────────────────────────────────── */
+html { font-size: 16px; }          /* was 15px — lifts all rem values proportionally */
+
+body {
+    font-family: var(--font-ui);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    min-height: 100vh;
+    padding: 2.75rem 1.5rem 6rem;
+}
+
+main {
+    width: 100%;
+    max-width: 1020px;
+    margin: 0 auto;
+}
+
+code, pre {
+    font-family: var(--font-mono);
+    font-size: 0.875em;             /* ~14px at base 16 */
+}
+
+/* Keyboard focus ring — visible on all interactive elements */
+:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+/* ── Loading Overlay ────────────────────────────────────────── */
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8,7,6,.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    backdrop-filter: blur(4px);
+}
+
+.loading-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.spinner {
+    width: 44px;
+    height: 44px;
+    border: 2px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-msg {
+    font-family: var(--font-ui);
+    font-size: 1rem;                /* was 0.88rem */
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+}
+
+/* ── Site Header ────────────────────────────────────────────── */
+.site-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2.5rem;          /* was 1.75rem */
+    flex-wrap: wrap;
+}
+
+.header-left h1 {
+    font-family: var(--font);
+    font-size: 2.75rem;             /* was 2.1rem → now ~44px */
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #fff;
+    line-height: 1.1;
+}
+
+.subtitle {
+    font-family: var(--font-ui);
+    font-size: 1rem;                /* was 0.85rem */
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+}
+
+.bob-badge {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;             /* was 0.68rem — min 13px rule */
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    border: 1px solid var(--gold-dim);
+    border-radius: 20px;
+    padding: 0.3rem 0.85rem;        /* slightly more padding */
+    white-space: nowrap;
+    align-self: flex-start;
+    margin-top: 0.55rem;
+    opacity: 0.8;                   /* was 0.7 — slightly more visible */
+}
+
+/* ── Banners ────────────────────────────────────────────────── */
+.banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    border-radius: var(--radius);
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.25rem;
+    font-size: 1rem;                /* was 0.88rem */
+    font-family: var(--font-ui);
+}
+
+.banner-icon { font-weight: 700; flex-shrink: 0; margin-top: 0.05rem; }
+
+.banner-error {
+    background: var(--red-bg);
+    border: 1px solid rgba(176,80,80,.3);
+    color: #d49a9a;                 /* brightened for readability */
+}
+
+.banner-ok {
+    background: var(--green-bg);
+    border: 1px solid rgba(78,148,104,.3);
+    color: #8ed4ac;                 /* brightened */
+}
+
+/* ── Base Card ──────────────────────────────────────────────── */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.6rem 1.8rem;         /* was 1.4rem 1.6rem */
+    margin-bottom: 1.25rem;
+}
+
+.section-title {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;             /* was 0.72rem — just above 12px floor */
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1.1rem;
+}
+
+/* ── Overview Card ──────────────────────────────────────────── */
+.overview-card { margin-bottom: 2rem; }
+
+.card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;            /* was 0.85rem */
+}
+
+.project-name {
+    font-family: var(--font);
+    font-size: 2.25rem;             /* was 1.65rem → now ~36px */
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.15;
+}
+
+.tag-row { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
+
+.tag {
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;           /* 13px */
+    font-weight: 600;
+    background: var(--gold-pale);
+    color: var(--gold);
+    border: 1px solid rgba(201,168,76,.25);
+    border-radius: 20px;
+    padding: 0.28rem 0.75rem;       /* more breathing room */
+    letter-spacing: 0.04em;
+}
+
+.summary-text {
+    font-family: var(--font-ui);
+    font-size: 1.0625rem;           /* 17px */
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+    line-height: 1.7;
+}
+
+.meta-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem 2.25rem;           /* was 0.6rem 2rem */
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+}
+
+.meta-item { display: flex; flex-direction: column; gap: 0.2rem; }
+
+.meta-label {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;             /* was 0.64rem — min 12px+ */
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
+.meta-value {
+    font-family: var(--font-ui);
+    font-size: 1rem;                /* was 0.9rem */
+    color: var(--text);
+    font-weight: 500;
+    line-height: 1.55;
+}
+
+/* ── Line-clamp utilities ───────────────────────────────────── */
+.clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Architecture meta value needs full width to show 3 lines clearly */
+.clamp-meta { flex-basis: 100%; }
+
+/* ── Grid Layout ────────────────────────────────────────────── */
+.grid-section-title {
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;           /* 13px — readable label */
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 2.75rem 0 0.9rem;       /* was 1.75rem — major section gap */
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border-gold);
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;                      /* was 0.85rem */
+    margin-bottom: 0.5rem;
+}
+
+/* ── Grid Card (shared) ─────────────────────────────────────── */
+.grid-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-gold);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.4rem 1.3rem; /* was 1.1rem 1.25rem 1.15rem */
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;                   /* was 0.45rem */
+}
+
+.grid-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+    background: var(--bg-card-hover);
+}
+
+/* ── Clickable cards ────────────────────────────────────────── */
+.clickable-card { cursor: pointer; }
+
+.card-hint {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;             /* was 0.62rem — raised above 12px */
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+    margin-top: auto;
+    padding-top: 0.4rem;
+}
+
+/* Accent top line */
+.gcard-accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border-gold);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+/* Accent colour variants */
+.accent-high, .accent-critical { background: var(--red); }
+.accent-warning, .accent-medium { background: var(--amber); }
+.accent-low, .accent-info { background: var(--blue); }
+.accent-starter { background: var(--gold); }
+
+.gcard-top {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.gcard-path {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;            /* 14px — was 0.78rem ≈ 11.7px */
+    color: var(--gold);
+    background: var(--gold-pale);
+    padding: 0.2em 0.5em;
+    border-radius: 4px;
+    word-break: break-all;
+}
+
+.gcard-title {
+    font-family: var(--font-ui);
+    font-size: 1.0625rem;           /* 17px — was 0.9rem */
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.35;
+}
+
+.gcard-file {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;            /* 14px — was 0.72rem */
+    color: var(--text-muted);
+    background: none;
+    word-break: break-all;
+}
+
+.gcard-desc {
+    font-family: var(--font-ui);
+    font-size: 1rem;                /* 16px — was 0.84rem */
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+/* ── Folder cards ───────────────────────────────────────────── */
+.folder-gcard .gcard-path { margin-bottom: 0.15rem; }
+
+/* ── File cards ─────────────────────────────────────────────── */
+.role-badge {
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;           /* 13px — was 0.65rem */
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: rgba(80,128,168,.15);
+    color: #8ab4d8;                 /* brightened from #5080a8 for legibility */
+    border: 1px solid rgba(80,128,168,.35);
+    border-radius: 20px;
+    padding: 0.25rem 0.7rem;        /* more padding — was 0.18rem 0.55rem */
+    white-space: nowrap;
+}
+
+/* ── Observation cards ──────────────────────────────────────── */
+.sev-badge {
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;           /* 13px — was 0.62rem */
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    border-radius: 20px;
+    padding: 0.25rem 0.75rem;       /* was 0.18rem 0.6rem */
+    border: 1px solid;
+}
+
+.sev-high, .sev-critical {
+    background: var(--red-bg);
+    color: #d48a8a;                 /* brightened */
+    border-color: rgba(176,80,80,.4);
+}
+
+.sev-warning, .sev-medium {
+    background: var(--amber-bg);
+    color: #dcb870;                 /* brightened */
+    border-color: rgba(196,146,58,.4);
+}
+
+.sev-low, .sev-info {
+    background: rgba(80,128,168,.12);
+    color: #8ab4cc;                 /* brightened */
+    border-color: rgba(80,128,168,.35);
+}
+
+/* ── Reading Order cards ────────────────────────────────────── */
+.reading-gcard { flex-direction: row; align-items: center; gap: 1rem; }
+
+.reading-num {
+    font-family: var(--font);
+    font-size: 2rem;                /* was 1.5rem — more prominent */
+    font-weight: 700;
+    color: var(--text-dim);
+    line-height: 1;
+    flex-shrink: 0;
+    min-width: 1.75rem;
+    text-align: center;
+}
+
+/* ── Starter Task ───────────────────────────────────────────── */
+.starter-card {
+    background: linear-gradient(135deg, #1a1610 0%, #161411 100%);
+    border: 1px solid var(--gold-dim);
+    border-radius: var(--radius);
+    padding: 2rem 2.25rem;          /* was 1.5rem 1.75rem */
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 48px rgba(201,168,76,.07);
+    margin-bottom: 1.25rem;
+    margin-top: 1rem;
+}
+
+.starter-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+}
+
+.starter-badge {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;             /* was 0.62rem */
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--gold);
+    border-radius: 20px;
+    padding: 0.28rem 0.8rem;
+}
+
+.starter-label {
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;           /* was 0.72rem */
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.starter-text {
+    font-family: var(--font-ui);
+    font-size: 1.125rem;            /* 18px — was 0.95rem */
+    color: var(--text);
+    line-height: 1.7;
+}
+
+/* ── Tech Details ───────────────────────────────────────────── */
+.tech-details > summary {
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    font-size: 0.9375rem;           /* 15px — summary readable */
+}
+
+.tech-details > summary::-webkit-details-marker { display: none; }
+
+.tech-details > summary::after {
+    content: ' ▸';
+    font-size: 0.7rem;
+    color: var(--text-dim);
+}
+
+.tech-details[open] > summary::after { content: ' ▾'; }
+
+.details-pre {
+    margin-top: 1.1rem;
+    font-family: var(--font-mono);
+    font-size: 0.9375rem;           /* 15px — was 0.76rem ≈ 11.4px */
+    color: var(--text-muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 38vh;
+    overflow-y: auto;
+    line-height: 1.65;
+}
+
+/* ── Upload Card ────────────────────────────────────────────── */
+.upload-card { margin-bottom: 1.5rem; }
+
+.upload-card label {
+    display: block;
+    font-family: var(--font-ui);
+    font-size: 0.9375rem;           /* 15px — was 0.83rem */
+    color: var(--text-muted);
+    margin-bottom: 0.7rem;
+}
+
+.upload-card label code {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    color: var(--gold);
+    background: var(--gold-pale);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+}
+
+.file-row-ui {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+input[type="file"] {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-ui);
+    font-size: 1rem;                /* was 0.87rem */
+    color: var(--text-muted);
+    background: var(--bg);
+    border: 1px solid var(--border-gold);
+    border-radius: 6px;
+    padding: 0.6rem 0.9rem;
+    cursor: pointer;
+}
+
+input[type="file"]::-webkit-file-upload-button { display: none; }
+
+button {
+    font-family: var(--font-ui);
+    background: var(--gold);
+    color: #0d0c0b;
+    border: none;
+    border-radius: 6px;
+    padding: 0.62rem 1.6rem;
+    font-size: 1rem;                /* was 0.88rem */
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, opacity 0.15s;
+}
+
+button:hover   { background: #d4b456; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Modal ──────────────────────────────────────────────────── */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(6,5,4,.78);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 900;
+    padding: 1.5rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.modal-backdrop.modal-open {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.modal-box {
+    background: #1a1713;
+    border: 1px solid var(--border-gold);
+    border-radius: 12px;
+    padding: 2.25rem 2.25rem 2rem;  /* was 2rem — more breathing room */
+    width: 100%;
+    max-width: 600px;               /* was 520px */
+    max-height: 82vh;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;                      /* was 0.85rem */
+    transform: scale(0.94) translateY(8px);
+    transition: transform 0.2s ease;
+    box-shadow: 0 24px 64px rgba(0,0,0,.7);
+}
+
+.modal-backdrop.modal-open .modal-box {
+    transform: scale(1) translateY(0);
+}
+
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.1rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s;
+}
+
+.modal-close:hover {
+    color: var(--text);
+    background: rgba(255,255,255,.06);
+}
+
+.modal-kind-label {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;             /* was 0.65rem */
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
+.modal-path {
+    font-family: var(--font-mono);
+    font-size: 0.9375rem;           /* 15px — was 0.85rem */
+    color: var(--gold);
+    background: var(--gold-pale);
+    padding: 0.3em 0.6em;
+    border-radius: 5px;
+    word-break: break-all;
+    line-height: 1.6;
+}
+
+.modal-role { align-self: flex-start; }
+
+.modal-sev  { align-self: flex-start; }
+
+.modal-title {
+    font-family: var(--font-ui);
+    font-size: 1.375rem;            /* 22px — was 0.98rem */
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.35;
+}
+
+.modal-file {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;            /* 14px — was 0.78rem */
+    color: var(--text-muted);
+    word-break: break-all;
+}
+
+.modal-desc {
+    font-family: var(--font-ui);
+    font-size: 1.0625rem;           /* 17px — was 0.9rem */
+    color: var(--text-muted);
+    line-height: 1.7;
+    border-top: 1px solid var(--border);
+    padding-top: 0.9rem;
+    margin-top: 0.15rem;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 680px) {
+    .card-grid          { grid-template-columns: 1fr; }
+    .reading-gcard      { flex-direction: column; gap: 0.4rem; }
+    .card-header        { flex-direction: column; }
+    .site-header        { flex-direction: column; gap: 0.5rem; }
+    .card,
+    .starter-card       { padding: 1.1rem 1.2rem; }
+    .project-name       { font-size: 1.65rem; }
+    .header-left h1     { font-size: 2.1rem; }
+    .modal-box          { padding: 1.5rem 1.25rem; }
+}
